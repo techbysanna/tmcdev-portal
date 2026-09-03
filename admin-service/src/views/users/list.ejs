@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head><%- include('../partials/head', { title: 'Users' }) %></head>
+<body>
+  <%- include('../partials/admin-nav', { currentUser, canViewAuditLog }) %>
+  <div class="admin-shell">
+    <div class="page-header">
+      <h1>Users</h1>
+      <a class="btn btn-inline" href="/users/new">+ New user</a>
+    </div>
+    <table>
+      <tr><th>Name</th><th>Email</th><th>Roles</th><th>Status</th><th>MFA</th><th></th></tr>
+      <% users.forEach(function(u) { %>
+        <tr>
+          <td><a href="/users/<%= u.id %>"><%= u.name %></a></td>
+          <td><%= u.email %></td>
+          <td><%= u.roles.map(r => r.application.key + ':' + r.role).join(', ') || '—' %><%= u.isSuperAdmin ? ' (super admin)' : '' %></td>
+          <td><span class="badge <%= u.isActive ? 'active' : 'inactive' %>"><%= u.isActive ? 'Active' : 'Deactivated' %></span></td>
+          <td><%= [u.totpEnabled ? 'TOTP' : null, u.smsEnabled ? 'SMS' : null].filter(Boolean).join(', ') || 'Not enrolled' %></td>
+          <td><a href="/users/<%= u.id %>">Manage</a></td>
+        </tr>
+      <% }) %>
+    </table>
+  </div>
+</body>
+</html>

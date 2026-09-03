@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+<head><%- include('partials/head', { title: 'Set up two-factor authentication' }) %></head>
+<body>
+  <div class="auth-shell">
+    <div class="card">
+      <h1>Set up two-factor authentication</h1>
+      <p class="subtitle">Required for every account. Choose one method to get started.</p>
+      <a class="btn" href="/login/mfa-setup/totp">Authenticator app (TOTP)</a>
+      <a class="btn secondary" href="/login/mfa-setup/sms">Text message (SMS)</a>
+    </div>
+  </div>
+</body>
+</html>

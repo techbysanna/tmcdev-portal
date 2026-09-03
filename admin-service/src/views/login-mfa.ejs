@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head><%- include('partials/head', { title: 'Verify it\'s you' }) %></head>
+<body>
+  <div class="auth-shell">
+    <div class="card">
+      <h1>Verify it's you</h1>
+      <p class="subtitle">
+        <% if (method === 'SMS') { %>Enter the code we texted you.<% } else { %>Enter the code from your authenticator app.<% } %>
+      </p>
+      <% if (error) { %><div class="error"><%= error %></div><% } %>
+      <form method="post" action="/login/mfa">
+        <input type="hidden" name="method" value="<%= method %>" />
+        <label for="code">Verification code</label>
+        <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus />
+        <button type="submit">Verify</button>
+      </form>
+      <% if (availableMethods.length > 1) { %>
+        <div class="links">
+          <% availableMethods.filter(m => m !== method).forEach(function(m) { %>
+            <a href="/login/mfa?method=<%= m %>">Use <%= m === 'SMS' ? 'text message' : 'authenticator app' %> instead</a>
+          <% }) %>
+        </div>
+      <% } %>
+      <% if (method === 'SMS') { %>
+        <form method="post" action="/login/mfa/resend-sms">
+          <button type="submit" class="secondary btn-inline" style="width:auto; margin-top:14px;">Resend code</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

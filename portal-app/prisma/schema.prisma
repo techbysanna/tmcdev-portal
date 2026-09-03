@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentCategory {
+  TAX_DOCUMENT
+  PROJECT_REPORT
+  STATEMENT
+}
+
+enum DocumentStatus {
+  PENDING_REVIEW // synced from Dropbox but not yet published to any investor (step 3/4)
+  PUBLISHED
+  ARCHIVED
+}
+
+// A local cache of admin-service identity, keyed by admin-service's own user id.
+// Portal-app never stores a password or MFA secret — those live only in admin-service.
+// This row is upserted every time the user completes login here, so it can drift
+// stale between logins but is never the source of truth for who can log in.
+model PortalUser {
+  id            String   @id // same id as admin-service's User.id
+  email         String   @unique
+  name          String
+  role          String // "investor" | "staff" | "admin", per admin-service's investor-portal role
+  lastSyncedAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  createdDocuments    Document[]           @relation("DocumentCreatedBy")
+  assignmentsReceived DocumentAssignment[] @relation("AssignmentInvestor")
+  assignmentsMade     DocumentAssignment[] @relation("AssignmentAssignedBy")
+  auditLogEntries     AuditLogEntry[]      @relation("AuditActor")
+
+  @@index([role])
+}
+
+model Document {
+  id                String           @id @default(uuid())
+  title             String
+  category          DocumentCategory
+  year              Int
+  projectName       String?
+  status            DocumentStatus   @default(PENDING_REVIEW)
+  dropboxFolderPath String? // populated once Dropbox sync (step 3) is wired up
+  currentVersionId  String?          @unique
+  createdByUserId   String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  createdBy      PortalUser?          @relation("DocumentCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  currentVersion DocumentVersion?     @relation("CurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  versions       DocumentVersion[]    @relation("DocumentVersions")
+  assignments    DocumentAssignment[]
+
+  @@index([category, year])
+  @@index([status])
+}
+
+model DocumentVersion {
+  id              String    @id @default(uuid())
+  documentId      String
+  versionNumber   Int
+  fileName        String
+  dropboxFileId   String? // Dropbox's stable file id, populated in step 3
+  dropboxRev      String?
+  sizeBytes       Int?
+  checksumSha256  String?
+  uploadedAt      DateTime  @default(now())
+  supersededAt    DateTime?
+
+  document     Document  @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
+  currentOfDoc Document? @relation("CurrentVersion")
+
+  @@unique([documentId, versionNumber])
+}
+
+model DocumentAssignment {
+  id             String   @id @default(uuid())
+  documentId     String
+  investorUserId String
+  assignedById   String?
+  assignedAt     DateTime @default(now())
+
+  document   Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  investor   PortalUser  @relation("AssignmentInvestor", fields: [investorUserId], references: [id], onDelete: Cascade)
+  assignedBy PortalUser? @relation("AssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  @@unique([documentId, investorUserId])
+  @@index([investorUserId])
+}
+
+// Append-only. No update/delete route is exposed for this model anywhere in the app.
+model AuditLogEntry {
+  id          String   @id @default(uuid())
+  actorUserId String?
+  actorEmail  String?
+  action      String
+  targetType  String?
+  targetId    String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  actor PortalUser? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([actorUserId])
+  @@index([action])
+}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head><%- include('../partials/head', { title: user.name }) %></head>
+<body>
+  <%- include('../partials/admin-nav', { currentUser, canViewAuditLog }) %>
+  <div class="admin-shell">
+    <div class="page-header">
+      <h1><%= user.name %></h1>
+      <span class="badge <%= user.isActive ? 'active' : 'inactive' %>"><%= user.isActive ? 'Active' : 'Deactivated' %></span>
+    </div>
+    <p style="color:#5b6270;"><%= user.email %><%= user.phoneNumber ? ' · ' + user.phoneNumber : '' %></p>
+    <p style="color:#5b6270;">MFA: <%= [user.totpEnabled ? 'Authenticator app' : null, user.smsEnabled ? 'SMS' : null].filter(Boolean).join(', ') || 'Not enrolled yet' %></p>
+
+    <h3>Roles</h3>
+    <table>
+      <tr><th>Application</th><th>Role</th><th></th></tr>
+      <% user.roles.forEach(function(r) { %>
+        <tr>
+          <td><%= r.application.name %></td>
+          <td><%= r.role %></td>
+          <td>
+            <% if (canManage) { %>
+              <form class="inline" method="post" action="/users/<%= user.id %>/roles/<%= r.id %>/remove">
+                <button type="submit" class="btn-inline secondary">Remove</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+      <% if (user.roles.length === 0) { %><tr><td colspan="3">No application roles assigned.</td></tr><% } %>
+    </table>
+
+    <% if (canManage && assignableApplications.length > 0) { %>
+      <form method="post" action="/users/<%= user.id %>/roles" style="margin-top:12px; max-width:360px;">
+        <label for="applicationRole">Add role</label>
+        <select id="applicationRole" name="applicationRole">
+          <% assignableApplications.forEach(function(app) { %>
+            <% app.assignableRoles.forEach(function(role) { %>
+              <option value="<%= app.id %>::<%= role %>"><%= app.name %>: <%= role %></option>
+            <% }) %>
+          <% }) %>
+        </select>
+        <button type="submit" class="btn-inline" style="margin-top:8px; display:block;">Add</button>
+      </form>
+    <% } %>
+
+    <% if (canManage) { %>
+      <h3>Account actions</h3>
+      <form class="inline" method="post" action="/users/<%= user.id %>/reset-mfa">
+        <button type="submit" class="btn-inline secondary">Reset MFA enrollment</button>
+      </form>
+      <% if (user.isActive) { %>
+        <form class="inline" method="post" action="/users/<%= user.id %>/deactivate">
+          <button type="submit" class="btn-inline secondary">Deactivate account</button>
+        </form>
+      <% } else { %>
+        <form class="inline" method="post" action="/users/<%= user.id %>/reactivate">
+          <button type="submit" class="btn-inline secondary">Reactivate account</button>
+        </form>
+      <% } %>
+      <p class="helptext">Resetting MFA clears their enrolled authenticator/SMS and requires them to set it up again next login. It does not change their password.</p>
+    <% } %>
+  </div>
+</body>
+</html>

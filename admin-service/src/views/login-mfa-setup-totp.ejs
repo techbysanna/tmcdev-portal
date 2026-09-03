@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head><%- include('partials/head', { title: 'Set up authenticator app' }) %></head>
+<body>
+  <div class="auth-shell">
+    <div class="card">
+      <h1>Scan this QR code</h1>
+      <p class="subtitle">Use Google Authenticator, 1Password, or any TOTP app.</p>
+      <% if (error) { %><div class="error"><%= error %></div><% } %>
+      <img src="<%= qrCodeDataUrl %>" alt="TOTP QR code" width="200" height="200" />
+      <p class="helptext">Can't scan it? Enter this key manually:</p>
+      <code class="qr-secret"><%= secret %></code>
+      <form method="post" action="/login/mfa-setup/totp">
+        <label for="code">Enter the 6-digit code from your app</label>
+        <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus />
+        <button type="submit">Confirm and enable</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

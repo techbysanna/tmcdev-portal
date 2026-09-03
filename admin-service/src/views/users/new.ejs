@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head><%- include('../partials/head', { title: 'New user' }) %></head>
+<body>
+  <%- include('../partials/admin-nav', { currentUser, canViewAuditLog }) %>
+  <div class="admin-shell">
+    <div class="page-header"><h1>New user</h1></div>
+    <% if (error) { %><div class="error" style="margin-top:16px;"><%= error %></div><% } %>
+    <form method="post" action="/users" style="max-width:420px;">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required autofocus />
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required />
+
+      <% if (applications.length > 0) { %>
+        <label for="applicationRole">Application &amp; role</label>
+        <select id="applicationRole" name="applicationRole">
+          <option value="">— None yet —</option>
+          <% applications.forEach(function(app) { %>
+            <% app.assignableRoles.forEach(function(role) { %>
+              <option value="<%= app.id %>::<%= role %>"><%= app.name %>: <%= role %></option>
+            <% }) %>
+          <% }) %>
+        </select>
+      <% } %>
+
+      <% if (currentUser.isSuperAdmin) { %>
+        <label><input type="checkbox" name="isSuperAdmin" value="true" style="width:auto; display:inline-block; margin-right:6px;" /> Super admin (manages this admin service itself)</label>
+      <% } %>
+
+      <button type="submit">Create user</button>
+    </form>
+    <p class="helptext" style="max-width:420px;">A temporary password is generated and sent to the new user's email. They'll be required to set their own password and enroll MFA on first login.</p>
+  </div>
+</body>
+</html>

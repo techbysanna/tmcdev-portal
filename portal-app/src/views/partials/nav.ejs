@@ -1,0 +1,11 @@
+<nav class="app-nav">
+  <div class="links">
+    <a href="/">Home</a>
+  </div>
+  <div class="links">
+    <span style="color:#5b6270; font-size:0.85rem; margin-right:14px;"><%= currentUser.name %></span>
+    <form method="post" action="/logout">
+      <button type="submit" class="linklike">Log out</button>
+    </form>
+  </div>
+</nav>

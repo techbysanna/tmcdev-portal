@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head><%- include('partials/head', { title: 'Audit log' }) %></head>
+<body>
+  <%- include('partials/admin-nav', { currentUser, canViewAuditLog }) %>
+  <div class="admin-shell">
+    <div class="page-header"><h1>Audit log</h1></div>
+    <table>
+      <tr><th>When</th><th>Action</th><th>Actor</th><th>Target</th><th>IP</th></tr>
+      <% entries.forEach(function(e) { %>
+        <tr>
+          <td><%= e.createdAt.toISOString() %></td>
+          <td><%= e.action %></td>
+          <td><%= e.actorEmail || '—' %></td>
+          <td><%= [e.targetType, e.targetId].filter(Boolean).join(' ') || '—' %></td>
+          <td><%= e.ipAddress || '—' %></td>
+        </tr>
+      <% }) %>
+    </table>
+    <% if (entries.length === 0) { %><p style="color:#5b6270; margin-top:16px;">No entries yet.</p><% } %>
+    <div style="margin-top:16px;">
+      <% if (hasPrev) { %><a href="?page=<%= page - 1 %>">&larr; Newer</a><% } %>
+      <% if (hasPrev && hasNext) { %> &nbsp;|&nbsp; <% } %>
+      <% if (hasNext) { %><a href="?page=<%= page + 1 %>">Older &rarr;</a><% } %>
+    </div>
+  </div>
+</body>
+</html>

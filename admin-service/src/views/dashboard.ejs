@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+<head><%- include('partials/head', { title: 'Dashboard' }) %></head>
+<body>
+  <%- include('partials/admin-nav', { currentUser, canViewAuditLog }) %>
+  <div class="admin-shell">
+    <div class="page-header"><h1>Dashboard</h1></div>
+    <p style="color:#5b6270;">Signed in as <strong><%= currentUser.name %></strong> (<%= currentUser.email %>).</p>
+    <table>
+      <tr><th>Application</th><th>Your role</th></tr>
+      <% currentUser.roles.forEach(function(r) { %>
+        <tr><td><%= r.application.name %></td><td><%= r.role %></td></tr>
+      <% }) %>
+      <% if (currentUser.roles.length === 0 && currentUser.isSuperAdmin) { %>
+        <tr><td colspan="2">Super admin (no per-application role needed)</td></tr>
+      <% } %>
+    </table>
+  </div>
+</body>
+</html>

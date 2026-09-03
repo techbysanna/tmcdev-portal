@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head><%- include('partials/head', { title: 'Set up text message codes' }) %></head>
+<body>
+  <div class="auth-shell">
+    <div class="card">
+      <% if (!codeSent) { %>
+        <h1>Text message codes</h1>
+        <p class="subtitle">We'll text you a verification code each time you sign in.</p>
+        <% if (error) { %><div class="error"><%= error %></div><% } %>
+        <form method="post" action="/login/mfa-setup/sms">
+          <label for="phoneNumber">Phone number</label>
+          <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="+15555550123" required autofocus />
+          <button type="submit">Send code</button>
+        </form>
+      <% } else { %>
+        <h1>Enter the code</h1>
+        <p class="subtitle">We sent a 6-digit code to your phone.</p>
+        <% if (typeof resent !== 'undefined' && resent) { %><div class="notice">A new code is on its way.</div><% } %>
+        <% if (error) { %><div class="error"><%= error %></div><% } %>
+        <form method="post" action="/login/mfa-setup/sms/verify">
+          <label for="code">Verification code</label>
+          <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus />
+          <button type="submit">Confirm and enable</button>
+        </form>
+        <form method="post" action="/login/mfa-setup/sms/resend">
+          <button type="submit" class="secondary" style="width:auto; margin-top:14px;">Resend code</button>
+        </form>
+        <div class="links"><a href="/login/mfa-setup">Try another way</a></div>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>
